@@ -1,5 +1,15 @@
-name: "JSC370 HW 5 - Interactive Visualization I and II"
+name: "jsc370-hw5"
 title: "JSC370 HW 5 - Interactive Visualization I and II"
 output_dir: "."
+
 navbar:
-  title: "JSC370 Homework 5"
+  title: "JSC370 HW 5 - Interactive Visualization I and II"
+  left:
+    - text: "Interactive Visualization"
+      href: index.html
+    - text: "Background"
+      href: background.html
+    - text: "Methods"
+      href: methods.html
+    - text: "References"
+      href: references.html

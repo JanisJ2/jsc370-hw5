@@ -1,0 +1,26 @@
+---
+title: "Methods and Data Preparation"
+output: html_document
+---
+
+## Data Collection
+
+The data was retrieved from the TMDb API using the `/discover/movie`, `/movie/{id}`, and `/movie/{id}/credits` endpoints. This allowed access to detailed movie-level metadata and cast/crew popularity.
+
+## Data Cleaning
+
+- Removed movies with zero or missing revenue, budget, or runtime
+- One-hot encoded genres and labeled seasons based on release month
+- Converted revenue and budget to $\log_{10}$ scale for analysis
+
+## Feature Engineering
+
+- Created average actor and crew popularity scores
+- Derived `season` and `release_year` from `release_date`
+- Included genre binary indicators and runtime
+
+## Statistical Tools
+
+- Linear and multiple regression
+- ANOVA to test for seasonal effects
+- Interactive plots using `plotly` to explore relationships and trends

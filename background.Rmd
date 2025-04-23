@@ -1,0 +1,16 @@
+---
+title: "Background"
+output: html_document
+---
+
+## Motivation
+
+Understanding what makes a movie successful at the box office is a valuable question in both entertainment and business. While some assume a bigger budget guarantees higher revenue, real-world performance often varies due to genre, season, cast, and audience interest.
+
+## Dataset
+
+The dataset was collected from The Movie Database (TMDb) API. It includes the top 1,000 highest-grossing movies, along with metadata like release date, budget, revenue, popularity, runtime, genre, top 5 actors, and crew members.
+
+## Research Question
+
+**How do factors such as budget, popularity, release season, runtime, genres, actors, and crew influence a movie's box office revenue?**

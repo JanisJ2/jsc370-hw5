@@ -1,0 +1,23 @@
+---
+title: "References and Notes"
+output: html_document
+---
+
+## Data Source
+
+- [TMDb API Documentation](https://developer.themoviedb.org/docs/getting-started)
+
+## Tools Used
+
+- R and RMarkdown
+- Tidyverse: `dplyr`, `tidyr`, `ggplot2`
+- Plotly for interactive visualizations
+- GitHub Pages for hosting
+
+## Acknowledgments
+
+Thanks to the JSC370 instructors for providing clear structure and lab-based guidance. Lab 11 and Lab 12 examples were particularly helpful when designing the layout and interactive elements.
+
+## Additional Notes
+
+This project focuses only on top-revenue movies, which may introduce survivorship bias. Future work could compare this dataset to low- and mid-tier revenue films to identify differences more broadly.

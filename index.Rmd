@@ -1,6 +1,6 @@
 ---
-title: "JSC370 HW 5 - Interactive Visualization I and II"
-author: "Janis Joplin"
+title: "Interactive Visualizations"
+# author: "Janis Joplin"
 output: 
     html_document:
         # toc: TRUE
@@ -39,7 +39,7 @@ head(movies)
 
 ## {.tabset .tabset-fade}
 
-### Figure: 3D Scatterplot of Revenue vs Budget vs Release Year
+### 3D Scatterplot of Revenue vs Budget vs Release Year
 ```{r results = 'asis'}
 plot_ly(
   data = movies,
@@ -76,7 +76,7 @@ plot_ly(
 The plot reveals a general positive correlation between budget and revenue, particularly for movies with moderate to high budgets. However, beyond a certain point, increasing the budget doesn't guarantee higher returns. Most high-revenue films released after 2000 tend to cluster within a moderate budget range, suggesting diminishing returns at very high budget levels. This pattern implies that while budget influences revenue, other factors—such as cast, marketing, or release timing—likely play a substantial role in box office success.
 
 
-### Figure: Boxplot of Log₁₀ Revenue by Movie Genre
+### Boxplot of Log₁₀ Revenue by Movie Genre
 ```{r results = "asis"}
 # Define genre columns
 genre_cols <- c("Action", "Adventure", "Fantasy", "Science Fiction", "Drama", "Romance",
@@ -185,7 +185,7 @@ plot_ly() %>%
 This plot highlights how movie revenue varies across genres. Genres such as Adventure, Action, and Fantasy tend to have higher median revenues and broader distributions, while genres like Horror, Documentary, and Crime typically show lower earnings. The presence of outliers in several genres reflects the impact of exceptional blockbuster films. For instance, a historical drama like Oppenheimer contributes a large outlier in the History category, while Science Fiction and Fantasy outliers are often driven by franchise films such as Avengers or Avatar. These standout titles, while rare, can disproportionately raise the perceived revenue potential of their genres. The plot reveals not only central trends but also the diversity of outcomes within each genre.
 
 
-### Figure: Average Movie Revenue Over Time
+### Average Movie Revenue Over Time
 ```{r results = 'asis'}
 # Compute average revenue per year
 avg_revenue <- movies %>%
