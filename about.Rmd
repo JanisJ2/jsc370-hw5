@@ -1,0 +1,9 @@
+---
+title: "About Me"
+output: html_document
+---
+
+Name    : Janis Joplin  
+Study   : University of Toronto  
+Program : Data Science Specialist, Computer Science Major, Mathematics Minor, Certificate in Business Fundamentals  
+Origin  : Indonesia
