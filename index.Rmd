@@ -1,0 +1,226 @@
+---
+title: "JSC370 HW 5 - Interactive Visualization I and II"
+author: "Janis Joplin"
+output: 
+    html_document:
+        # toc: TRUE
+        # toc_float: TRUE
+---
+
+```{r echo = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, results = 'hide')
+```
+
+```{r setup, eval = FALSE}
+!install.packages(c("httr", "dplyr", "jsonlite", "progress", "dplyr", "tidyr", "ggplot2", "knitr", "ggcorrplot", "stringr", "xgboost", "lubridate"))
+```
+
+```{r library}
+library(httr)
+library(dplyr)
+library(jsonlite)
+library(progress)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(knitr)
+library(ggcorrplot)
+library(stringr)
+library(xgboost)
+library(lubridate)
+library(plotly)
+library(htmlwidgets)
+```
+
+```{r}
+movies <- readRDS("movies_cleaned.rds")
+head(movies)
+```
+
+## {.tabset .tabset-fade}
+
+### Figure: 3D Scatterplot of Revenue vs Budget vs Release Year
+```{r results = 'asis'}
+plot_ly(
+  data = movies,
+  x = ~log10(budget),
+  y = ~log10(revenue),
+  z = ~release_year,
+  type = "scatter3d",
+  mode = "markers",
+  marker = list(
+    size = 3,
+    color = ~log10(revenue),
+    colorscale = "Viridis",
+    showscale = TRUE,
+    colorbar = list(title = "Log₁₀(Revenue)")
+  ),
+  text = ~paste("Title:", title,
+                "<br>Release Year:", release_year,
+                "<br>Budget: $", format(budget, big.mark = ","),
+                "<br>Revenue: $", format(revenue, big.mark = ",")),
+  hoverinfo = "text"
+) %>%
+  layout(
+    title = "3D Scatterplot: Revenue vs Budget vs Release Year",
+    scene = list(
+      xaxis = list(title = "Log₁₀ Budget"),
+      yaxis = list(title = "Log₁₀ Revenue"),
+      zaxis = list(title = "Release Year")
+    )
+  )
+```
+
+**Figure: 3D Scatterplot of Revenue vs Budget vs Release Year**. This interactive plot visualizes log-transformed movie revenue and budget over time. Each point represents a movie, with color indicating the $\log_{10}$ of its revenue.
+
+The plot reveals a general positive correlation between budget and revenue, particularly for movies with moderate to high budgets. However, beyond a certain point, increasing the budget doesn't guarantee higher returns. Most high-revenue films released after 2000 tend to cluster within a moderate budget range, suggesting diminishing returns at very high budget levels. This pattern implies that while budget influences revenue, other factors—such as cast, marketing, or release timing—likely play a substantial role in box office success.
+
+
+### Figure: Boxplot of Log₁₀ Revenue by Movie Genre
+```{r results = "asis"}
+# Define genre columns
+genre_cols <- c("Action", "Adventure", "Fantasy", "Science Fiction", "Drama", "Romance",
+                "Animation", "Comedy", "Family", "Thriller", "Crime", "History", "Music",
+                "War", "Mystery", "Horror", "Western", "Documentary")
+
+# Reshape and summarize
+genre_summary <- movies |>
+  select(title, revenue, budget, popularity, release_date, all_of(genre_cols)) |>
+  pivot_longer(cols = all_of(genre_cols), names_to = "genre", values_to = "has_genre") |>
+  filter(has_genre == 1) |>
+  mutate(log_revenue = log10(revenue), log_budget = log10(budget)) |>
+  group_by(genre) |>
+  mutate(
+    movie_count = n(),
+    mean_rev = mean(log_revenue, na.rm = TRUE),
+    median_rev = median(log_revenue, na.rm = TRUE),
+    mean_pop = mean(popularity, na.rm = TRUE)
+  ) |>
+  ungroup()
+
+# Data for hover layer: one point per genre
+hover_data <- genre_summary |>
+  group_by(genre) |>
+  summarize(
+    movie_count = n(),
+    mean_rev = mean(log_revenue),
+    median_rev = median(log_revenue),
+    mean_pop = mean(popularity),
+    .groups = "drop"
+  ) |>
+  mutate(hover_text = paste0(
+    "Genre: ", genre,
+    "<br>Total Movies: ", movie_count,
+    "<br>Average Log Revenue: ", round(mean_rev, 2),
+    "<br>Average Popularity: ", round(mean_pop, 2)
+  ))
+
+# Calculate Q1, Q3, IQR per genre
+iqr_stats <- genre_summary %>%
+  group_by(genre) %>%
+  summarize(
+    Q1 = quantile(log_revenue, 0.25),
+    Q3 = quantile(log_revenue, 0.75),
+    IQR = IQR(log_revenue),
+    .groups = "drop"
+  )
+
+# Join IQR stats back to data
+outliers <- genre_summary %>%
+  left_join(iqr_stats, by = "genre") %>%
+  filter(log_revenue < Q1 - 1.5 * IQR | log_revenue > Q3 + 1.5 * IQR) %>%
+  mutate(hover = paste0(
+    "Title: ", title,
+    "<br>Log₁₀ Revenue: ", round(log_revenue, 2),
+    "<br>Log₁₀ Budget: ", round(log_budget, 2),
+    "<br>Popularity: ", popularity,
+    "<br>Release Date: ", release_date
+  ))
+
+# Plot
+plot_ly() %>%
+  add_trace(
+    data = genre_summary,
+    y = ~genre,
+    x = ~log_revenue,
+    type = "box",
+    color = ~genre,
+    boxpoints = "outliers",
+    orientation = "h",
+    hoverinfo = "skip",
+    name = ~genre
+  ) %>%
+  add_trace(
+    data = outliers,
+    y = ~genre,
+    x = ~log_revenue,
+    type = "scatter",
+    mode = "markers",
+    marker = list(opacity = 0, size = 5, symbol = "circle", color = "#440154"),
+    text = ~hover,
+    hoverinfo = "text",
+    showlegend = FALSE
+  ) |>
+  add_trace(
+    data = hover_data,
+    y = ~genre,
+    x = ~median_rev,
+    type = "scatter",
+    mode = "markers",
+    marker = list(opacity = 0, size = 1, color = "#440154"),
+    text = ~hover_text,
+    hoverinfo = "text",
+    showlegend = FALSE
+  ) %>%
+  layout(
+    title = "Revenue by Genre (Log₁₀ Scale)",
+    xaxis = list(title = "Log₁₀ Revenue"),
+    yaxis = list(title = "Genre"),
+    showlegend = FALSE
+  )
+```
+
+**Figure: Horizontal Boxplot of $\log_{10}$ Revenue by Movie Genre**. Each box represents the distribution of log-transformed revenue for movies in a specific genre. Users can hover over the center of the boxplot or outlier points to view additional information.
+
+This plot highlights how movie revenue varies across genres. Genres such as Adventure, Action, and Fantasy tend to have higher median revenues and broader distributions, while genres like Horror, Documentary, and Crime typically show lower earnings. The presence of outliers in several genres reflects the impact of exceptional blockbuster films. For instance, a historical drama like Oppenheimer contributes a large outlier in the History category, while Science Fiction and Fantasy outliers are often driven by franchise films such as Avengers or Avatar. These standout titles, while rare, can disproportionately raise the perceived revenue potential of their genres. The plot reveals not only central trends but also the diversity of outcomes within each genre.
+
+
+### Figure: Average Movie Revenue Over Time
+```{r results = 'asis'}
+# Compute average revenue per year
+avg_revenue <- movies %>%
+  group_by(release_year) %>%
+  summarize(avg_rev = mean(revenue, na.rm = TRUE), .groups = "drop")
+
+# Create interactive line chart
+plot_ly(
+  data = avg_revenue,
+  x = ~release_year,
+  y = ~avg_rev,
+  type = "scatter",
+  mode = "lines+markers",
+  line = list(color = "red", width = 2),
+  marker = list(color = "black", size = 4),
+  hoverinfo = "text",
+  text = ~paste("Year:", release_year,
+                "<br>Average Revenue: $", format(round(avg_rev), big.mark = ","))
+) %>%
+  layout(
+    title = "Average Movie Revenue Over Time",
+    xaxis = list(title = "Release Year"),
+    yaxis = list(title = "Average Revenue (USD)")
+  )
+```
+
+**Figure: Line Plot of Average Movie Revenue by Release Year**. Each point represents the average revenue of movies released in a given year, with a connecting line to visualize temporal trends. Users can hover over points to explore year-specific revenue values.
+
+This plot reveals long-term trends in movie revenue over time. Average earnings have generally increased since the 1990s, coinciding with the global expansion of cinema markets and the emergence of major franchise films. A dramatic dip occurs in 2020, reflecting the widespread disruption that might be caused by the COVID-19 pandemic, which led to theater closures and delayed releases across the industry. The sharp rebound in subsequent years suggests a recovery in box office performance, driven by high-profile releases and evolving distribution strategies. This visualization captures both the growth of the film industry and the vulnerability of revenue trends to global events.
+
+
+
+
+
+
+
+
+
